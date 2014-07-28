@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -15,6 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -110,6 +112,20 @@ public class MainActivity extends Activity {
                         Toast t = Toast.makeText(getActivity(), "Connection error.", Toast.LENGTH_SHORT);
                         t.show();
                     }
+                }
+            });
+
+            list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+                    Image clickedImaged = images.get(position);
+//                get big image for selected image
+                    String urlPng = clickedImaged.getSvg().getPng_full_lossy();
+                    Log.d("FieldAware urlPng", urlPng);
+//                create intent and add details to it to send to create fragment
+                    Intent intent = new Intent(getActivity(),DetailFragmentActivity.class);
+                    intent.putExtra("urlPng", urlPng);
+                    startActivity(intent);
                 }
             });
 
@@ -220,6 +236,7 @@ public class MainActivity extends Activity {
                 }
 
             }
+
         }
     }
 }

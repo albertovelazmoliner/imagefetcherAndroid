@@ -31,6 +31,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
+import static com.fieldaware.imagefetcher.R.string.error_timeout;
+
 
 public class MainActivity extends Activity {
 
@@ -73,7 +75,7 @@ public class MainActivity extends Activity {
         private ProgressDialog dialog;
         private ListView list;
         int start = 1;
-        int limit = 10;
+        int pageIntent = 1;
         boolean loadingMore = false;
         View loadMoreView;
         ArrayAdapter<Image> adapter;
@@ -103,6 +105,7 @@ public class MainActivity extends Activity {
                         if ((lastInScreen == totalItemCount) && !(loadingMore) && start < 11) {
                             Log.d(DEBUG_TAG, "We're at the end of the list");
                             new GoForImages().execute("http://openclipart.org/search/json/?query=flower&page=" + start + "&amount=100", null, "");
+                            pageIntent = start;
                             start++;
                             loadingMore = true;
                         } else {
@@ -118,14 +121,17 @@ public class MainActivity extends Activity {
             list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                    Image clickedImaged = images.get(position);
+                    if(!dialog.isShowing()) {
+                        Image clickedImaged = images.get(position);
 //                get big image for selected image
-                    String urlPng = clickedImaged.getSvg().getPng_full_lossy();
-                    Log.d("FieldAware urlPng", urlPng);
+                        String urlPng = clickedImaged.getSvg().getPng_full_lossy();
+                        Log.d("FieldAware urlPng", urlPng);
 //                create intent and add details to it to send to create fragment
-                    Intent intent = new Intent(getActivity(),DetailFragmentActivity.class);
-                    intent.putExtra("urlPng", urlPng);
-                    startActivity(intent);
+                        Intent intent = new Intent(getActivity(),DetailFragmentActivity.class);
+                        intent.putExtra("urlPng", urlPng);
+                        startActivity(intent);
+                    }
+
                 }
             });
 
@@ -140,8 +146,8 @@ public class MainActivity extends Activity {
         private class GoForImages extends AsyncTask<String, Void, String> {
 
             protected void onPreExecute() {
-                dialog = new ProgressDialog(getActivity());
-                dialog.show();
+                dialog = ProgressDialog.show(getActivity(),"","Loading Data...");
+
             }
 
             @Override
@@ -172,7 +178,11 @@ public class MainActivity extends Activity {
                     is = conn.getInputStream();
 
                     // Convert the InputStream into a string
-                    String contentAsString = convertStreamToString(is);
+                    String contentAsString = null;
+                    if (is !=null){
+                        contentAsString = convertStreamToString(is);
+                    }
+
 
                     return contentAsString;
 
@@ -182,8 +192,7 @@ public class MainActivity extends Activity {
                     if (is != null) {
                         is.close();
                     } else {
-                        Toast t = Toast.makeText(getActivity(), "Timeout error.", Toast.LENGTH_SHORT);
-                        t.show();
+                        //Toast.makeText(getActivity(), error_timeout, Toast.LENGTH_SHORT).show();
                     }
 
                 }
@@ -212,24 +221,36 @@ public class MainActivity extends Activity {
 
             // onPostExecute displays the results of the AsyncTask.
             protected void onPostExecute(String result) {
-                if (result != null) {
+                if (result != null && result !="Unable to retrieve JSON. URL may be invalid.") {
+                    Log.d("FieldAware result: ", result);
                     Gson gson = new Gson();
-                    PageDataModel payload = gson.fromJson(result,PageDataModel.class);
+                    try {
+                        PageDataModel payload = gson.fromJson(result,PageDataModel.class);
 
-                    //populateList();
-                    for (int i = 0; i < payload.getPayload().size();i++){
-                        images.add(payload.getPayload().get(i));
-                        //Log.d(DEBUG_TAG, "The response string is: " + payload.getPayload().get(i).getSvg().getPng_thumb());
-                    }
-                    if (start == 2) {
-                        populateListView();
-                    } else {
-                        adapter.notifyDataSetChanged();
+                        //populateList();
+                        for (int i = 0; i < payload.getPayload().size();i++){
+                            images.add(payload.getPayload().get(i));
+                            //Log.d(DEBUG_TAG, "The response string is: " + payload.getPayload().get(i).getSvg().getPng_thumb());
+                        }
+                        if (start == 2) {
+                            populateListView();
+                            loadingMore=false;
+                            dialog.dismiss();
+                        } else {
+                            loadingMore=false;
+                            adapter.notifyDataSetChanged();
+                            dialog.dismiss();
+                        }
+                    } catch (Exception e) {
+                        start = pageIntent;
+                        dialog.dismiss();
+                        Toast t = Toast.makeText(getActivity(), "Something was wrong.", Toast.LENGTH_SHORT);
+                        t.show();
                     }
 
-                    dialog.dismiss();
-                    loadingMore=false;
                 } else {
+                    start = pageIntent;
+                    loadingMore=false;
                     dialog.dismiss();
                     Toast t = Toast.makeText(getActivity(), "Something was wrong.", Toast.LENGTH_SHORT);
                     t.show();

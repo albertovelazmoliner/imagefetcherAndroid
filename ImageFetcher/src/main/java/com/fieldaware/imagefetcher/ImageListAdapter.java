@@ -29,23 +29,23 @@ public class ImageListAdapter extends ArrayAdapter<Image> {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-//            do we have a view
+
         View itemView = convertView;
         if (itemView == null) {
             LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
             itemView = inflater.inflate(R.layout.row_view, parent, false);
         }
-//           get current person
+//           get current image
         Image currentImage = images.get(position);
 
 //            fill the view
         ImageView imageView = (ImageView) itemView.findViewById(R.id.row_icon);
-//            for development - shows the triangle - yellow=disk, green=memory
 
-//            you need to include the Picasso Library - see tutorial
         //Picasso.with(context).setDebugging(true);
         Picasso.with(context)
                 .load(currentImage.getSvg().getPng_thumb())
+                .resize(50,50)
+                .centerCrop()
                 .into(imageView);
 
         TextView nameText = (TextView) itemView.findViewById(R.id.row_label);

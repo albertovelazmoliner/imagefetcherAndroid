@@ -45,11 +45,11 @@ public class ImageListAdapter extends ArrayAdapter<Image> {
 //            you need to include the Picasso Library - see tutorial
         //Picasso.with(context).setDebugging(true);
         Picasso.with(context)
-                .load(currentImage.getImageUrl())
+                .load(currentImage.getSvg().getPng_thumb())
                 .into(imageView);
 
         TextView nameText = (TextView) itemView.findViewById(R.id.row_label);
-        nameText.setText(currentImage.getText());
+        nameText.setText(currentImage.getTitle());
 
         return itemView;
     }

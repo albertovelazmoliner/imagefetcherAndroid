@@ -4,27 +4,29 @@ package com.fieldaware.imagefetcher;
  * Created by alberto on 27/07/14.
  */
 public class Image {
-    public String imageUrl;
-    public String text;
 
-    public Image(String url, String name){
-        this.imageUrl = url;
-        this.text = name;
+    public String title;
+    public SVGModel svg;
+
+    public Image(String title, SVGModel svg){
+        this.svg = svg;
+        this.title = title;
     }
 
-    public String getText() {
-        return text;
+    public String getTitle() {
+        return title;
     }
 
-    public void setText(String text) {
-        this.text = text;
+    public void setTitle(String text) {
+        this.title = title;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public SVGModel getSvg() {
+        return svg;
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public void setSvg(SVGModel svg) {
+        this.svg = svg;
     }
+
 }
